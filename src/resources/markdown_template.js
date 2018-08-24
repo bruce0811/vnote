@@ -190,7 +190,9 @@ new QWebChannel(qt.webChannelTransport,
         content.requestPreviewEnabled.connect(setPreviewEnabled);
 
         content.requestPreviewCodeBlock.connect(previewCodeBlock);
+
         content.requestSetPreviewContent.connect(setPreviewContent);
+        content.requestPerformSmartLivePreview.connect(performSmartLivePreview);
 
         if (typeof updateHtml == "function") {
             updateHtml(content.html);
@@ -1577,3 +1579,45 @@ var htmlToText = function(identifier, id, timeStamp, html) {
     var markdown = ts.turndown(html);
     content.htmlToTextCB(identifier, id, timeStamp, markdown);
 };
+
+var performSmartLivePreview = function(text) {
+    if (previewDiv.style.display == 'none') {
+        return;
+    }
+
+    var targetNode = findNodeWithText(previewDiv, new RegExp(text));
+    if (!targetNode) {
+        return;
+    }
+
+    if (targetNode.nodeName == 'text') {
+        targetNode = targetNode.parentNode;
+    }
+
+    console.log("target node " +  targetNode.nodeName + " " +  targetNode.innerHTML);
+    targetNode.scrollIntoView({block: "center", inline: "nearest"});
+}
+
+var findNodeWithText = function(node, reg) {
+    var children = node.children;
+    if (children.length == 0) {
+        if (reg.test(node.textContent)) {
+            return node;
+        } else {
+            return null;
+        }
+    }
+
+    for (var i = 0; i < children.length; ++i) {
+        var ret = findNodeWithText(children[i], reg);
+        if (ret) {
+            return ret;
+        }
+    }
+
+    if (reg.test(node.textContent)) {
+        return node;
+    }
+
+    return null;
+}
